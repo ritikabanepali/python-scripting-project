@@ -52,6 +52,19 @@ def copy_and_overwrite(source, dest):
     shutil.copytree(source, dest)
 
 
+# create a json file for the new target directory
+# path: where do you want the file to be?
+# game_dirs: directories we want to write meta data for
+def make_json_metadata_file(path, game_dirs):
+    data = { # data we want to write into the json file
+        "gameNames" : game_dirs,
+        "numberOfGames" : len(game_dirs)
+    }
+
+    # using a context manager to open file. with keyword closes file for us
+    with open(path, "w") as f: # w: write mode, overwrites file if alr exists
+        json.dump(data, f) # dump data into file
+
 
 # source is where we are looking and target is where we want to put directory
 def main(source, target):
@@ -62,16 +75,19 @@ def main(source, target):
     source_path = os.path.join(cwd, source)
     target_path = os.path.join(cwd, target)
 
-    game_paths = find_all_game_paths(source_path)
-    new_game_dirs = get_name_from_paths(game_paths, "_game")
+    game_paths = find_all_game_paths(source_path) # found all game paths we are interested in
+    new_game_dirs = get_name_from_paths(game_paths, "_game") # set new directory names
 
-    create_dir(target_path)
-    
+    create_dir(target_path) # create directory to copy all game directories into
+
     # tuples the lists together with the zip function:
     # ex - [1, 2, 3] & [a, b, c] -> (1, a), (2, b), (3, c)
-    for src, dest in zip(game_paths, new_game_dirs):
+    for src, dest in zip(game_paths, new_game_dirs): # performing the copy operation
         dest_path = os.path.join(target_path, dest)
         copy_and_overwrite(src, dest_path)
+    
+    json_path = os.path.join(target_path, "metadata.json")
+    make_json_metadata_file(json_path, new_game_dirs)
 
 
 
