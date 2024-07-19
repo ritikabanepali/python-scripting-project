@@ -9,6 +9,8 @@ import sys # access to command line arguments
 # where we should be storing all found games / where to look for the games
 
 DIRECTORY_PATTERN = "game" # what we are looking for in the directory 
+GAME_EXTENSION = ".go"
+COMPILE_COMMAND = ["go", "build"]
 
 # find all game directories from the source directory
 # walk through source directory and match directories containing the pattern
@@ -66,6 +68,41 @@ def make_json_metadata_file(path, game_dirs):
         json.dump(data, f) # dump data into file
 
 
+# path: path to the directory we want to compile the code in
+# we need to determine the name of the file we want to compile
+def compile_game_code(path): 
+    code_file_name = None  
+
+    # assuming our path has only one go file
+    for root, dirs, files in os.walk(path):
+        for file in files: # loop through all files
+            if file.endswith(GAME_EXTENSION): # checks if file is .go file
+                code_file_name = file 
+                break
+        break
+
+        # if no code file, return. otherwise, compile
+        if code_file_name is None:
+            return
+        
+        command = COMPILE_COMMAND + [code_file_name]
+        run_command(command, path)
+
+
+
+# run any command that is passed to this method
+def run_command(command, path): # path we want to be running the command from
+    cwd = os.getcwd()
+    os.chdir(path) # change directory
+
+    # stdout & stdin = location where the command is inputting and outputting
+    # PIPE = bridge between the python code and process we are using to run command
+    result = run(command, stdout=PIPE, stdin=PIPE, universal_newlines=True)
+    print("compile result", result)
+
+    os.chdir(cwd) # change back to original cwd
+
+
 # source is where we are looking and target is where we want to put directory
 def main(source, target):
     # we need to create a complete path from location of where we are
@@ -85,6 +122,7 @@ def main(source, target):
     for src, dest in zip(game_paths, new_game_dirs): # performing the copy operation
         dest_path = os.path.join(target_path, dest)
         copy_and_overwrite(src, dest_path)
+        compile_game_code(dest_path)
     
     json_path = os.path.join(target_path, "metadata.json")
     make_json_metadata_file(json_path, new_game_dirs)
