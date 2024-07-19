@@ -81,13 +81,12 @@ def compile_game_code(path):
                 break
         break
 
-        # if no code file, return. otherwise, compile
-        if code_file_name is None:
-            return
+    # if no code file, return. otherwise, compile
+    if code_file_name is None:
+        return
         
-        command = COMPILE_COMMAND + [code_file_name]
-        run_command(command, path)
-
+    command = COMPILE_COMMAND + [code_file_name]
+    run_command(command, path)
 
 
 # run any command that is passed to this method
@@ -126,7 +125,6 @@ def main(source, target):
     
     json_path = os.path.join(target_path, "metadata.json")
     make_json_metadata_file(json_path, new_game_dirs)
-
 
 
 # grab the command line arguments. only want to execute the main script
